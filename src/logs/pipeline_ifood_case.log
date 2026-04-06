@@ -1,0 +1,7 @@
+2026-04-06 01:08:38,248 | INFO | Ambiente de execução: local
+2026-04-06 01:08:38,248 | INFO | Executando Camada Bronze
+2026-04-06 01:08:39,954 | INFO | Executando Camada Silver
+2026-04-06 01:08:40,404 | INFO | View Spark silver_taxi finalizada com sucesso!
+2026-04-06 01:08:40,404 | INFO | Executando Camada Gold - Análise de valor médio por mês
+2026-04-06 01:08:42,434 | INFO | Executando Camada Gold - Análise de passageiros por hora
+2026-04-06 01:08:43,318 | INFO | Closing down clientserver connection
