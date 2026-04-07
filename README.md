@@ -32,18 +32,23 @@ Foi desenvolvido um pipeline de dados seguindo padrão de medalhão com as segui
 
 > (PySpark - Databricks (Unity Catalog + Delta Lake) - SQL - Git (versionamento))
 
-1 - Bronze (raw zone)
+1 - Volume (raw files)
+-
+  Ingestão dos dados brutos (parquet) - **Utilizando Unity Catalog - Via Upload File**
+
+![image_1775532752916.png](./image_1775532752916.png "image_1775532752916.png")
+
+
+2 - Bronze
 -
   Camada para Manter dados próximos da origem, garantindo consistência estrutural.
 
   Ingestão dos dados brutos (parquet) - **Utilizando Unity Catalog - Via Upload File**
 
-![image_1775532752916.png](./image_1775532752916.png "image_1775532752916.png")
-
   Padronização mínima e estrutural e particionamento e governança /
   year, month, dat_import
 
-2 - Silver 
+3 - Silver 
 - 
  Camada para garantir qualidade e estrutura e confiabilidade dos dados, para consumo analítico
 
@@ -53,7 +58,7 @@ Aplicação de Data Quality:
 - validação de valores
 - padronização de tipos
 
-3 - Gold
+4 - Gold
 -
 Consolidação de métricas solicitadas para negócio e disponibilização de estrutura para Analises de Dados.
 
