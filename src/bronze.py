@@ -47,6 +47,7 @@ def run_bronze(spark: SparkSession, ENV: str):
         #     .withColumn("dolocationid", col("dolocationid").cast("long")) \
         #     .withColumn("total_amount", col("total_amount").cast("double"))
 
+        #https://www.nyc.gov/assets/tlc/downloads/pdf/data_dictionary_trip_records_yellow.pdf
         df = df \
             .withColumn("vendorid", col("vendorid").cast("long")) \
             .withColumn("tpep_pickup_datetime", col("tpep_pickup_datetime").cast("timestamp")) \
