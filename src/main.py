@@ -24,7 +24,6 @@ def main():
 
     # # Gold
     logger.info("Executando Camada Gold")
-    spark.catalog.clearCache()
     gold_create_schema_view(spark, ENV)
 
     logger.info("Validar views camada Gold")

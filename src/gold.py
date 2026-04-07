@@ -18,7 +18,10 @@ def gold_create_schema_view(spark: SparkSession, ENV: str):
     # REGRA 1
     # Qual a média de valor total (total\_amount) recebido em um mês considerando todos os yellow táxis da frota?
     # Média de valor total por mês
+    #
     # -------------------------
+    #Limpeza de cache nao esta funcionando então vou realizar drop antes de criar
+    spark.sql("DROP VIEW IF EXISTS " + schema + ".gold_media_valor_total_mes")
     spark.sql("""
         CREATE OR REPLACE VIEW """ + schema + """.gold_media_valor_total_mes AS
         SELECT 
@@ -33,6 +36,9 @@ def gold_create_schema_view(spark: SparkSession, ENV: str):
     # Qual a média de passageiros (passenger\_count) por cada hora do dia que pegaram táxi no mês de maio considerando todos os táxis da frota?
     # Média de passageiros por hora (mês de maio)
     # -------------------------
+    #Limpeza de cache nao esta funcionando então vou realizar drop antes de criar
+
+    spark.sql("DROP VIEW IF EXISTS " + schema + ".gold_media_passageiros_hora")
     spark.sql("""
         CREATE OR REPLACE VIEW """ + schema + """.gold_media_passageiros_hora AS
         SELECT 
