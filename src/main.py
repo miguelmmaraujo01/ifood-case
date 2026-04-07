@@ -26,7 +26,7 @@ def main():
     logger.info("Executando Camada Gold")
     gold_create_schema_view(spark, ENV)
 
-    logger.info("Validar views camada Gold")
+    logger.info("Validando views camada Gold")
     spark.sql("SELECT * FROM workspace.taxi.gold_media_valor_total_mes").show()
     spark.sql("SELECT * FROM workspace.taxi.gold_media_passageiros_hora").show()
 

@@ -1,28 +1,33 @@
 
-%sql
+USE workspace.taxi;
+
+SHOW TABLES IN workspace.taxi;
+
+select * from taxi.silver_taxi;
 --GOLD
 --2 - Qual a média de valor total total\_amount recebido em um mês considerando todos os yellow táxis da frota?
 --SELECT * FROM silver_taxi limit 10 
 
+-- select * from taxi.silver_taxi;
+
 SELECT 
   month as des_month,
   AVG(total_amount) AS val_avg_total_amount
-FROM silver_taxi
+FROM taxi.silver_taxi
 GROUP BY month
 ORDER BY month;
 
 
--- des_month	val_avg_total_amount
--- 1	27.02038310708492
--- 2	26.898484499532195
--- 3	27.803426281277332
--- 4	28.269516727673878
--- 5	28.962981777556617
+-- -- des_month	val_avg_total_amount
+-- -- 1	27.02038310708492
+-- -- 2	26.898484499532195
+-- -- 3	27.803426281277332
+-- -- 4	28.269516727673878
+-- -- 5	28.962981777556617
 
------------------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------------------
 
-%sql
--- 3 Qual a média de passageiros passenger\_count por cada hora do dia que pegaram táxi no mês de maio considerando todos os táxis da frota?
+-- -- 3 Qual a média de passageiros passenger\_count por cada hora do dia que pegaram táxi no mês de maio considerando todos os táxis da frota?
 
 SELECT 
   CASE 
@@ -31,7 +36,7 @@ SELECT
   END AS des_am_pm,
   HOUR(tpep_pickup_datetime) AS num_pickup_hour,
   AVG(passenger_count) AS val_avg_passengers
-FROM silver_taxi
+FROM  taxi.silver_taxi
 WHERE month = 5
 GROUP BY HOUR(tpep_pickup_datetime)
 order by num_pickup_hour asc
