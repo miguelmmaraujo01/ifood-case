@@ -1,12 +1,19 @@
 from pyspark.sql.functions import col, hour, month
-from pyspark.sql import DataFrame
+from pyspark.sql import SparkSession, DataFrame
+import logging
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def run_silver(df_bronze: DataFrame) -> DataFrame:
-#camada silver
+def run_silver(spark: SparkSession, ENV: str) -> DataFrame:
+    #camada silver
+
+    bronze_table = "workspace.taxi.bronze_taxi"
+    silver_table = "workspace.taxi.silver_taxi"
+    df_bronze = spark.read.table(bronze_table)
 
     valid_columns = [
-        "VendorID",
+        "vendorid",
         "passenger_count",
         "total_amount",
         "tpep_pickup_datetime",
@@ -16,24 +23,15 @@ def run_silver(df_bronze: DataFrame) -> DataFrame:
     ]
 
     try:
+        logger.info("Validando colunas necessárias camada Silver")
         df_silver = df_bronze.select(*valid_columns)
     except Exception as e:
-        print(f"Erro ao selecionar colunas necessárias: {e}")
-        raise
-
-
-    # Utilizacao apenas das colunas necessária, reduzindo o volume de dados e processamento.  
-    df_silver = df_bronze.select(
-        col("VendorID"),
-        col("passenger_count"),
-        col("total_amount"),
-        col("tpep_pickup_datetime"),
-        col("tpep_dropoff_datetime"),
-        col("year"),
-        col("month")
-    )
+        logger.error(f"Erro ao selecionar colunas necessárias: {e}")
+        #print(f"Erro ao selecionar colunas necessárias: {e}")
+        raise e
 
     # Padronizacao da tipagem e colunas para facilitar o processamento
+    logger.info("Equalizando tipagem colunas camada Silver")
     df_silver = df_silver \
         .withColumn("passenger_count", col("passenger_count").cast("int")) \
         .withColumn("total_amount", col("total_amount").cast("double")) \
@@ -42,7 +40,22 @@ def run_silver(df_bronze: DataFrame) -> DataFrame:
         .withColumn("year", col("year").cast("int")) \
         .withColumn("month", col("month").cast("int")) 
 
-    #display(df_silver)
-    #df_silver.createOrReplaceTempView("silver_taxi")
+    logger.info("Salvando camada Silver")
+
+
+    try:
+        df_silver = df_silver.repartition(4)
+
+        df_silver.write \
+            .format("delta") \
+            .mode("overwrite") \
+            .partitionBy("year", "month") \
+            .saveAsTable(silver_table)
+
+    except Exception as e:
+        logger.error(f"Erro ao criar Camada Silver: {e}")
+        raise
+
+    logger.info("Camada Silver criada com sucesso")
 
     return df_silver
