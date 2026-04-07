@@ -13,6 +13,7 @@ def run_bronze(spark: SparkSession, ENV: str):
     # tabela delta para gravar dados bronze
     table_name = "workspace.taxi.bronze_taxi"
 
+    ##spark.sql("DROP TABLE IF EXISTS workspace.taxi.bronze_taxi")
     spark.sql("CREATE SCHEMA IF NOT EXISTS workspace.taxi")
 
     for m in dict_months:
@@ -38,13 +39,35 @@ def run_bronze(spark: SparkSession, ENV: str):
             new_columns.append(col_name.lower())
         df = df.toDF(*new_columns)
 
+        # df = df \
+        #     .withColumn("vendorid", col("vendorid").cast("long")) \
+        #     .withColumn("passenger_count", col("passenger_count").cast("double")) \
+        #     .withColumn("ratecodeid", col("ratecodeid").cast("double")) \
+        #     .withColumn("pulocationid", col("pulocationid").cast("long")) \
+        #     .withColumn("dolocationid", col("dolocationid").cast("long")) \
+        #     .withColumn("total_amount", col("total_amount").cast("double"))
+
         df = df \
             .withColumn("vendorid", col("vendorid").cast("long")) \
+            .withColumn("tpep_pickup_datetime", col("tpep_pickup_datetime").cast("timestamp")) \
+            .withColumn("tpep_dropoff_datetime", col("tpep_dropoff_datetime").cast("timestamp")) \
             .withColumn("passenger_count", col("passenger_count").cast("double")) \
+            .withColumn("trip_distance", col("trip_distance").cast("double")) \
             .withColumn("ratecodeid", col("ratecodeid").cast("double")) \
+            .withColumn("store_and_fwd_flag", col("store_and_fwd_flag").cast("string")) \
             .withColumn("pulocationid", col("pulocationid").cast("long")) \
             .withColumn("dolocationid", col("dolocationid").cast("long")) \
-            .withColumn("total_amount", col("total_amount").cast("double"))
+            .withColumn("payment_type", col("payment_type").cast("int")) \
+            .withColumn("fare_amount", col("fare_amount").cast("double")) \
+            .withColumn("extra", col("extra").cast("double")) \
+            .withColumn("mta_tax", col("mta_tax").cast("double")) \
+            .withColumn("tip_amount", col("tip_amount").cast("double")) \
+            .withColumn("tolls_amount", col("tolls_amount").cast("double")) \
+            .withColumn("improvement_surcharge", col("improvement_surcharge").cast("double")) \
+            .withColumn("total_amount", col("total_amount").cast("double")) \
+            .withColumn("congestion_surcharge", col("congestion_surcharge").cast("double")) \
+            .withColumn("airport_fee", col("airport_fee").cast("double"))
+            #.withColumn("cbd_congestion_fee", col("cbd_congestion_fee").cast("double")) #Congestion Relief Zone starting Jan. 5, 2025. Só existe apartir de 2025
 
 
         # criando particionamento rastreabilidade para governanca
