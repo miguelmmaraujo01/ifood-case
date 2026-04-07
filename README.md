@@ -32,6 +32,10 @@ Foi desenvolvido um pipeline de dados seguindo padrão de medalhão com as segui
 
 > (PySpark - Databricks (Unity Catalog + Delta Lake) - SQL - Git (versionamento))
 
+> **Tabelas Delta Lake:** 
+> 
+> Consumo e performance dos dados. Tendo como motivos, ACID para consistência dos dados, particionamento, peformance para leitura e escrita, controle de schema padronização dos dados e evolução de forma controlada.
+
 1 - Volume (raw files)
 -
   Ingestão dos dados brutos (parquet) - **Utilizando Unity Catalog - Via Upload File**
@@ -88,6 +92,11 @@ Consolidação de métricas solicitadas para negócio e disponibilização de es
 > workspace.taxi.gold_media_valor_total_mes
 > 
 > workspace.taxi.gold_media_passageiros_hora
+
+#### Padronização de pastas:
+
+![image_1775570208871.png](./image_1775570208871.png "image_1775570208871.png")
+
 
 
 #### 🔹 DASHBOARD - COMO REALIZAR IMPORT
