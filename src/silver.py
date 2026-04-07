@@ -53,7 +53,8 @@ def run_silver(spark: SparkSession, ENV: str) -> DataFrame:
     logger.info("Salvando camada Silver")
 
     try:
-        df_silver = df_silver.repartition(4)
+        #alinhamento com particao fisica ajuda em shuffle desnecessário, controlar paralelismo
+        df_silver = df_silver.repartition(4, "year", "month") 
 
         df_silver.write \
             .format("delta") \
