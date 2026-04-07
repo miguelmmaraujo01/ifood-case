@@ -109,6 +109,28 @@ Consolidação de métricas solicitadas para negócio e disponibilização de es
 
 
 
+Mermaid:
+-
+
+![image_1775574167346.png](./image_1775574167346.png "image_1775574167346.png")
+
+- Importar para drawio
+
+------------
+
+flowchart LR
+
+A[Unity Catalog / Raw Data] --> B[PySpark Engine]
+
+B --> C[Bronze - Delta<br>Ingestion]
+C --> D[Silver - Delta<br>Data Quality & Transformation]
+D --> E[Gold - Views<br>Business Metrics]
+
+E --> F[SQL Analytics]
+E --> G[BI Tools]
+------------
+
+
 
 🔹 Execução Local (opcional)
 
