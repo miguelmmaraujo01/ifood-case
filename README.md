@@ -4,6 +4,10 @@ Objetivo
 -
 Solução desenvolvida para fazer a ingestão de dados referentes às corridas de táxis de NY. Onde temos um pipeline de dados no DataBricks utilizando camadas(bronze-silver-gold), 
 com ingestão via *.parquet, utilizando pyspark para tratamento e disponibilizando dados para analise. Usando Delta Lake em tabelas tendo consisitência e performance.
+Foi criado um dashboard para visualização das visoes, explicação de importação no final do readme
+
+
+![image_1775532602842.png](./image_1775532602842.png "image_1775532602842.png")
 
 
 Uso solicitado na documentação
@@ -33,6 +37,8 @@ Foi desenvolvido um pipeline de dados seguindo padrão de medalhão com as segui
   Camada para Manter dados próximos da origem, garantindo consistência estrutural.
 
   Ingestão dos dados brutos (parquet) - **Utilizando Unity Catalog - Via Upload File**
+
+![image_1775532752916.png](./image_1775532752916.png "image_1775532752916.png")
 
   Padronização mínima e estrutural e particionamento e governança /
   year, month, dat_import
@@ -79,8 +85,13 @@ Consolidação de métricas solicitadas para negócio e disponibilização de es
 > workspace.taxi.gold_media_passageiros_hora
 
 
+#### 🔹 DASHBOARD - COMO REALIZAR IMPORT
 
-
+> No databricks vá em Workspace ou Dashboards
+> 
+> Clique em: Import
+> 
+> Selecione o arquivo: .json
 
 
 
