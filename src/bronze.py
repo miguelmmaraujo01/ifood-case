@@ -1,59 +1,62 @@
-from pyspark.sql.functions import lit, current_timestamp, date_trunc
-from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql.functions import lit, current_timestamp, date_trunc, col
+from pyspark.sql import SparkSession
+import logging
 
-def run_bronze(spark: SparkSession, ENV: str) -> DataFrame:
-    #camada bronze
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-    #validar catalog
-    #spark.read.parquet("/Volumes/workspace/taxi/file_taxi/yellow_tripdata_2023-01.parquet").show(5)
 
-    # Meses para utilizacao (processamento incremental)
+def run_bronze(spark: SparkSession, ENV: str):
+
     dict_months = ["2023-01","2023-02","2023-03","2023-04","2023-05"]
 
-    df_bronze = None
+    # tabela delta (correto no databricks)
+    table_name = "workspace.taxi.bronze_taxi"
 
-    # Iteracao para carregar os dados por mes
+    spark.sql("CREATE SCHEMA IF NOT EXISTS workspace.taxi")
+
     for m in dict_months:
-        print(f"Carregando mês: {m}")
+        logger.info(f"Carregando mês: {m}")
 
-        #Conforme recomentado uso databrikcks
-        #Carga via Upload File - Leitura dos dados via Unity Catalog Volume (camada landing zone), simulando Data Lake.
         if ENV == "databricks":
             path = f"/Volumes/workspace/taxi/file_taxi/yellow_tripdata_{m}.parquet"
-        #local teste
-        else: 
-            path = f"../Volumes/workspace/taxi/file_taxi/yellow_tripdata_{m}.parquet"
+        else:
+            # só pra local (opcional)
+            path = f"./Volumes/workspace/taxi/file_taxi/yellow_tripdata_{m}.parquet"
 
         try:
             df = spark.read.parquet(path)
         except Exception as e:
-            print(f"Erro ao carregar arquivo: {e}")
+            logger.error(f"Erro ao carregar arquivo: {e}")
             raise FileNotFoundError(f"Arquivo não encontrado: {path}")
-            
-        # Criando colunas de particionamento para facilitar o processamento incremental , para melhor gestao de dados
+
+        # Padronizacao nome colunas para minusculo
+        new_columns = []
+        for col_name in df.columns:
+            new_columns.append(col_name.lower())
+        df = df.toDF(*new_columns)
+
+        df = df \
+            .withColumn("vendorid", col("vendorid").cast("long")) \
+            .withColumn("passenger_count", col("passenger_count").cast("double")) \
+            .withColumn("ratecodeid", col("ratecodeid").cast("double")) \
+            .withColumn("pulocationid", col("pulocationid").cast("long")) \
+            .withColumn("dolocationid", col("dolocationid").cast("long")) \
+            .withColumn("total_amount", col("total_amount").cast("double"))
+
         year, month = m.split("-")
+
         df = df.withColumn("year", lit(year)) \
-            .withColumn("month", lit(month)) \
-                .withColumn("dat_import", date_trunc("second", current_timestamp())) 
+               .withColumn("month", lit(month)) \
+               .withColumn("dat_import", date_trunc("second", current_timestamp()))
 
-        # Unificacao dos meses em um único dataframe
-        if df_bronze is None:
-            df_bronze = df
-        else:
-            df_bronze = df_bronze.unionByName(df)
+        # 🔥 grava corretamente como tabela delta
+        df.write \
+            .format("delta") \
+            .mode("append") \
+            .partitionBy("year", "month") \
+            .saveAsTable(table_name)
 
-    # validando dados lidos 
-    #df_bronze.groupBy("year", "month").count().show()
-    # +----+-----+-------+
-    # |year|month|  count|
-    # +----+-----+-------+
-    # |2023|   01|3066766|
-    # |2023|   02|2913955|
-    # |2023|   03|3403766|
-    # |2023|   04|3288250|
-    # |2023|   05|3513649|
-    # +----+-----+-------+
-    #display(df_bronze)
+        logger.info(f"Dados gravados na tabela: {table_name}")
 
-
-    return df_bronze
+    logger.info("Bronze finalizada com sucesso")
