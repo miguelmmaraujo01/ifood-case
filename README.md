@@ -32,9 +32,9 @@ Foi desenvolvido um pipeline de dados seguindo padrão de medalhão com as segui
 
 > (PySpark - Databricks (Unity Catalog + Delta Lake) - SQL - Git (versionamento))
 
-> **Tabelas Delta Lake:** 
-> 
-> Consumo e performance dos dados. Tendo como motivos, ACID para consistência dos dados, particionamento, peformance para leitura e escrita, controle de schema padronização dos dados e evolução de forma controlada.
+**Tabelas Delta Lake:** 
+
+Consumo e performance dos dados. Tendo como motivos, ACID para consistência dos dados, particionamento, peformance para leitura e escrita, controle de schema padronização dos dados e evolução de forma controlada.
 
 1 - Volume (raw files)
 -
@@ -114,21 +114,21 @@ Mermaid:
 
 ![image_1775574167346.png](./image_1775574167346.png "image_1775574167346.png")
 
-- Importar para drawio
+- Importar script para drawio:
 
-------------
 
-flowchart LR
+> flowchart LR
+> 
+> A[Unity Catalog / Raw Data] --> B[PySpark Engine]
+> 
+> B --> C[Bronze - Delta<br>Ingestion]
+> C --> D[Silver - Delta<br>Data Quality & Transformation]
+> D --> E[Gold - Views<br>Business Metrics]
+> 
+> E --> F[SQL Analytics]
+> E --> G[BI Tools]
 
-A[Unity Catalog / Raw Data] --> B[PySpark Engine]
 
-B --> C[Bronze - Delta<br>Ingestion]
-C --> D[Silver - Delta<br>Data Quality & Transformation]
-D --> E[Gold - Views<br>Business Metrics]
-
-E --> F[SQL Analytics]
-E --> G[BI Tools]
-------------
 
 
 
