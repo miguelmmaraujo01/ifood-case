@@ -23,7 +23,7 @@ def run_silver(spark: SparkSession, ENV: str) -> DataFrame:
     ]
 
     try:
-        logger.info("Validando colunas necessárias camada Silver")
+        logger.info("DataQuality - Validando colunas necessárias camada Silver")
         df_silver = df_bronze.select(*valid_columns)
     except Exception as e:
         logger.error(f"Erro ao selecionar colunas necessárias: {e}")
@@ -31,7 +31,7 @@ def run_silver(spark: SparkSession, ENV: str) -> DataFrame:
         raise e
 
     # Padronizacao da tipagem e colunas para facilitar o processamento
-    logger.info("Equalizando tipagem colunas camada Silver")
+    logger.info("DataQuality - Equalizando consistencia tipagem colunas camada Silver")
     df_silver = df_silver \
         .withColumn("passenger_count", col("passenger_count").cast("int")) \
         .withColumn("total_amount", col("total_amount").cast("double")) \
@@ -40,8 +40,17 @@ def run_silver(spark: SparkSession, ENV: str) -> DataFrame:
         .withColumn("year", col("year").cast("int")) \
         .withColumn("month", col("month").cast("int")) 
 
-    logger.info("Salvando camada Silver")
 
+    logger.info("DataQuality - Validacao de negócio camada Silver")
+    df_silver = df_silver \
+        .filter(col("total_amount").isNotNull()) \
+        .filter(col("passenger_count") > 0) \
+        .filter(col("tpep_pickup_datetime").isNotNull()) \
+        .filter(col("tpep_dropoff_datetime").isNotNull()) \
+        .filter(col("year").isNotNull()) \
+        .filter(col("month").isNotNull())
+
+    logger.info("Salvando camada Silver")
 
     try:
         df_silver = df_silver.repartition(4)

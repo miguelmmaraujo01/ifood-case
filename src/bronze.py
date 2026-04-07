@@ -10,7 +10,7 @@ def run_bronze(spark: SparkSession, ENV: str):
 
     dict_months = ["2023-01","2023-02","2023-03","2023-04","2023-05"]
 
-    # tabela delta (correto no databricks)
+    # tabela delta para gravar dados bronze
     table_name = "workspace.taxi.bronze_taxi"
 
     spark.sql("CREATE SCHEMA IF NOT EXISTS workspace.taxi")
@@ -30,7 +30,9 @@ def run_bronze(spark: SparkSession, ENV: str):
             logger.error(f"Erro ao carregar arquivo: {e}")
             raise FileNotFoundError(f"Arquivo não encontrado: {path}")
 
-        # Padronizacao nome colunas para minusculo
+        # Padronizacao nome colunas para minusculo e cast garantindo a estrutura dos dados.
+        logger.info("DataQuality - Estrutural camada Bronze")
+
         new_columns = []
         for col_name in df.columns:
             new_columns.append(col_name.lower())
@@ -44,13 +46,14 @@ def run_bronze(spark: SparkSession, ENV: str):
             .withColumn("dolocationid", col("dolocationid").cast("long")) \
             .withColumn("total_amount", col("total_amount").cast("double"))
 
-        year, month = m.split("-")
 
+        # criando particionamento rastreabilidade para governanca
+        year, month = m.split("-")
         df = df.withColumn("year", lit(year)) \
                .withColumn("month", lit(month)) \
                .withColumn("dat_import", date_trunc("second", current_timestamp()))
 
-        # 🔥 grava corretamente como tabela delta
+        # gravando dados bronze
         df.write \
             .format("delta") \
             .mode("append") \
