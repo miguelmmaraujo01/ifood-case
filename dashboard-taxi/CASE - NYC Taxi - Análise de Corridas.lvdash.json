@@ -26,6 +26,50 @@
         "ORDER BY\n",
         "  des_mes"
       ]
+    },
+    {
+      "name": "periodo_dia",
+      "displayName": "Corridas por Período do Dia",
+      "queryLines": [
+        "SELECT\n",
+        "  CASE\n",
+        "    WHEN HOUR(tpep_pickup_datetime) BETWEEN 0 AND 5 THEN 'Madrugada'\n",
+        "    WHEN HOUR(tpep_pickup_datetime) BETWEEN 6 AND 11 THEN 'Manhã'\n",
+        "    WHEN HOUR(tpep_pickup_datetime) BETWEEN 12 AND 17 THEN 'Tarde'\n",
+        "    ELSE 'Noite'\n",
+        "  END AS des_periodo,\n",
+        "  month AS des_mes,\n",
+        "  COUNT(*) AS num_qtd_corridas,\n",
+        "  SUM(total_amount) as val_total_periodo\n",
+        "FROM\n",
+        "  workspace.taxi.silver_taxi\n",
+        "GROUP BY\n",
+        "  des_periodo,\n",
+        "  month\n",
+        "ORDER BY\n",
+        "  num_qtd_corridas DESC"
+      ]
+    },
+    {
+      "name": "periodo_simples",
+      "displayName": "Análise por Período do Dia",
+      "queryLines": [
+        "SELECT\n",
+        "  CASE\n",
+        "    WHEN HOUR(tpep_pickup_datetime) BETWEEN 0 AND 5 THEN 'Madrugada'\n",
+        "    WHEN HOUR(tpep_pickup_datetime) BETWEEN 6 AND 11 THEN 'Manhã'\n",
+        "    WHEN HOUR(tpep_pickup_datetime) BETWEEN 12 AND 17 THEN 'Tarde'\n",
+        "    ELSE 'Noite'\n",
+        "  END AS des_periodo,\n",
+        "  COUNT(*) AS num_qtd_corridas,\n",
+        "  SUM(total_amount) as val_total_periodo\n",
+        "FROM\n",
+        "  workspace.taxi.silver_taxi\n",
+        "GROUP BY\n",
+        "  des_periodo\n",
+        "ORDER BY\n",
+        "  num_qtd_corridas DESC"
+      ]
     }
   ],
   "pages": [
@@ -159,8 +203,132 @@
           },
           "position": {
             "x": 0,
+            "y": 8,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_mes",
+            "queries": [
+              {
+                "name": "dashboards/01f1322edaa21296941a2ec183f82cbd/datasets/01f1322f318d1d98922a7df16383a2ed_des_mes",
+                "query": {
+                  "datasetName": "monthly_average",
+                  "fields": [
+                    {
+                      "name": "des_mes",
+                      "expression": "`des_mes`"
+                    },
+                    {
+                      "name": "des_mes_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Selecionar Mês",
+                "showTitle": true
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "des_mes",
+                    "queryName": "dashboards/01f1322edaa21296941a2ec183f82cbd/datasets/01f1322f318d1d98922a7df16383a2ed_des_mes"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
             "y": 6,
-            "width": 8,
+            "width": 12,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "fd8879bb",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "periodo_simples",
+                  "fields": [
+                    {
+                      "name": "des_periodo",
+                      "expression": "`des_periodo`"
+                    },
+                    {
+                      "name": "num_qtd_corridas",
+                      "expression": "`num_qtd_corridas`"
+                    },
+                    {
+                      "name": "val_total_periodo",
+                      "expression": "`val_total_periodo`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Análise de Corridas por Período",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "des_periodo",
+                  "displayName": "Período do Dia",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "primary": {
+                    "fields": [
+                      {
+                        "fieldName": "num_qtd_corridas",
+                        "displayName": "Quantidade de Corridas"
+                      }
+                    ],
+                    "scale": {
+                      "type": "quantitative"
+                    }
+                  },
+                  "secondary": {
+                    "fields": [
+                      {
+                        "fieldName": "val_total_periodo",
+                        "displayName": "Valor Total (R$)"
+                      }
+                    ],
+                    "scale": {
+                      "type": "quantitative"
+                    }
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 14,
+            "width": 9,
             "height": 6
           }
         }
