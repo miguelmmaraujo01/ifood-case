@@ -20,14 +20,14 @@ GROUP BY HOUR(tpep_pickup_datetime)
 order by num_horas asc
 
 
-        SELECT 
-            HOUR(tpep_pickup_datetime) AS num_horas,
-            CASE WHEN HOUR(tpep_pickup_datetime) < 12 THEN 'AM' ELSE 'PM' END AS des_am_pm,
-            AVG(passenger_count) AS val_media_passageiros_hora
-        FROM """ + schema + """.silver_taxi
-        WHERE month = '05'
-        GROUP BY HOUR(tpep_pickup_datetime)
-        ORDER BY num_horas ASC
+        -- SELECT 
+        --     HOUR(tpep_pickup_datetime) AS num_horas,
+        --     CASE WHEN HOUR(tpep_pickup_datetime) < 12 THEN 'AM' ELSE 'PM' END AS des_am_pm,
+        --     AVG(passenger_count) AS val_media_passageiros_hora
+        -- FROM """ + schema + """.silver_taxi
+        -- WHERE month = '05'
+        -- GROUP BY HOUR(tpep_pickup_datetime)
+        -- ORDER BY num_horas ASC
 
 -- des_am_pm	num_pickup_hour	val_avg_passengers
 -- AM	0	1.4109309957491796

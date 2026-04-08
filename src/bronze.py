@@ -1,44 +1,116 @@
 from pyspark.sql.functions import lit, current_timestamp, date_trunc, col
 from pyspark.sql import SparkSession
 import logging
+import os
+import glob
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def run_bronze(spark: SparkSession, ENV: str):
+def run_bronze(spark: SparkSession, ENV: str, mode_load: str, list_year_months: list = None):
 
-    dict_months = ["2023-01","2023-02","2023-03","2023-04","2023-05"]
 
     # tabela delta para gravar dados bronze
     table_name = "workspace.taxi.bronze_taxi"
 
-    ##spark.sql("DROP TABLE IF EXISTS workspace.taxi.bronze_taxi")
-    spark.sql("CREATE SCHEMA IF NOT EXISTS workspace.taxi")
+    logger.info(f"Executando Bronze - {ENV} - {mode_load}")
 
-    for m in dict_months:
-        logger.info(f"Carregando mês: {m}")
+    if mode_load == 'full' or mode_load is None:
+        list_year_months = None
+        spark.sql("DROP TABLE IF EXISTS workspace.taxi.bronze_taxi")
+        spark.sql("CREATE SCHEMA IF NOT EXISTS workspace.taxi")
 
-        if ENV == "databricks":
-            path = f"/Volumes/workspace/taxi/file_taxi/yellow_tripdata_{m}.parquet"
-        else:
-            # só pra local (opcional)
-            path = f"./Volumes/workspace/taxi/file_taxi/yellow_tripdata_{m}.parquet"
+        #glob carrega os arquivos em dicionario
+        files = glob.glob("/Volumes/workspace/taxi/file_taxi/yellow_tripdata_*.parquet")
 
-        try:
-            df = spark.read.parquet(path)
-        except Exception as e:
-            logger.error(f"Erro ao carregar arquivo: {e}")
-            raise FileNotFoundError(f"Arquivo não encontrado: {path}")
+        for f in files:
+            file_name = f.split("/")[-1]
+            if "yellow_tripdata_" in file_name and file_name.endswith(".parquet"):
+                file_part_year_month = file_name.replace("yellow_tripdata_", "").replace(".parquet", "")
+                # y, m = file_part_year_month.split("-")
+                logger.info(f"Carregando arquivo: {f}")
+                try:
+                    df = spark.read.parquet(f)
+                except Exception as e:
+                    logger.error(f"Erro ao carregar arquivo: {e}")
+                    raise e
 
-        # Padronizacao nome colunas para minusculo e cast garantindo a estrutura dos dados.
+                # Padronizacao nome colunas para minusculo e cast garantindo a estrutura dos dados.
+                df = transformation_estructural_bronze(df, file_part_year_month)
+
+                # gravando dados bronze
+                df = df.repartition(4)
+                df.write \
+                    .format("delta") \
+                    .mode("append") \
+                    .partitionBy("year", "month") \
+                    .saveAsTable(table_name)
+
+                logger.info(f"Dados gravados na tabela: {table_name}")
+
+        logger.info("Bronze finalizada com sucesso")
+    # incremental 
+    else:
+        ###spark.sql("DROP TABLE workspace.taxi.silver_taxi")
+        
+        dfs = []
+        spark.sql("CREATE SCHEMA IF NOT EXISTS workspace.taxi")
+
+        if list_year_months is None:
+            logger.error("list_year_months necessário para carregamento incremental")
+            raise ValueError("list_year_months necessário para carregamento incremental")
+
+        for m in list_year_months:
+
+            logger.info(f"Carregando ano mês: {m}")
+
+            if ENV == "databricks":
+                path = f"/Volumes/workspace/taxi/file_taxi/yellow_tripdata_{m}.parquet"
+            else:
+                # só pra local (opcional)
+                path = f"./Volumes/workspace/taxi/file_taxi/yellow_tripdata_{m}.parquet"
+
+            try:
+                df = spark.read.parquet(path)
+            except Exception as e:
+                logger.error(f"Erro ao carregar arquivo: {e}")
+                raise FileNotFoundError(f"Arquivo não encontrado: {path}") from e
+
+            # Padronizacao nome colunas para minusculo e cast garantindo a estrutura dos dados.
+            df = transformation_estructural_bronze(df, m)
+            dfs.append(df)
+
+        # junta tudo de forma simples
+        df_final = dfs[0]
+        for df in dfs[1:]:
+            df_final = df_final.unionByName(df)
+
+        list_append_year_month = []
+        for ym  in list_year_months:
+            year, month = ym.split("-")
+            list_append_year_month.append(f"(year = '{year}' AND month = '{month}')")
+        replaceYearMonth = " OR ".join(list_append_year_month)
+        logger.info(f"replaceYearMonth : {replaceYearMonth}")
+
+        # gravando dados bronze #df.write \
+        df_final = df_final.repartition(4)
+        df_final.write \
+            .format("delta") \
+            .mode("overwrite") \
+            .option("replaceWhere", replaceYearMonth) \
+            .partitionBy("year", "month") \
+            .saveAsTable(table_name)
+
+        logger.info(f"Dados gravados na tabela: {table_name}")
+
+        logger.info("Bronze finalizada com sucesso")
+
+
+def transformation_estructural_bronze(df, file_part_year_month):
+        m = file_part_year_month
         logger.info("DataQuality - Estrutural camada Bronze")
-
-        new_columns = []
-        for col_name in df.columns:
-            new_columns.append(col_name.lower())
-        df = df.toDF(*new_columns)
-
+        # Colunas necessárias
         # df = df \
         #     .withColumn("vendorid", col("vendorid").cast("long")) \
         #     .withColumn("passenger_count", col("passenger_count").cast("double")) \
@@ -77,13 +149,9 @@ def run_bronze(spark: SparkSession, ENV: str):
                .withColumn("month", lit(month)) \
                .withColumn("dat_import", date_trunc("second", current_timestamp()))
 
-        # gravando dados bronze
-        df.write \
-            .format("delta") \
-            .mode("append") \
-            .partitionBy("year", "month") \
-            .saveAsTable(table_name)
+        new_columns = []
+        for col_name in df.columns:
+            new_columns.append(col_name.lower())
+        df = df.toDF(*new_columns)
 
-        logger.info(f"Dados gravados na tabela: {table_name}")
-
-    logger.info("Bronze finalizada com sucesso")
+        return df
