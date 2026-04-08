@@ -26,9 +26,10 @@ def gold_create_schema_view(spark: SparkSession, ENV: str):
         CREATE OR REPLACE VIEW """ + schema + """.gold_media_valor_total_mes AS
         SELECT 
             month AS des_mes,
-            AVG(total_amount) AS val_media_total_mes
+            AVG(total_amount) AS val_media_total_mes,
+            dat_import
         FROM """ + schema + """.silver_taxi
-        GROUP BY month
+        GROUP BY month, dat_import
         ORDER BY des_mes ASC
     """)
     # -------------------------
@@ -44,10 +45,11 @@ def gold_create_schema_view(spark: SparkSession, ENV: str):
         SELECT 
             HOUR(tpep_pickup_datetime) AS num_horas,
             CASE WHEN HOUR(tpep_pickup_datetime) < 12 THEN 'AM' ELSE 'PM' END AS des_am_pm,
-            AVG(passenger_count) AS val_media_passageiros_hora
+            AVG(passenger_count) AS val_media_passageiros_hora,
+            dat_import
         FROM """ + schema + """.silver_taxi
         WHERE month = '05'
-        GROUP BY HOUR(tpep_pickup_datetime)
+        GROUP BY HOUR(tpep_pickup_datetime), dat_import
         ORDER BY num_horas ASC
     """)
 

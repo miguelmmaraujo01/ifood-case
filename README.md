@@ -36,6 +36,31 @@ Foi desenvolvido um pipeline de dados seguindo padrão de medalhão com as segui
 
 Consumo e performance dos dados. Tendo como motivos, ACID para consistência dos dados, particionamento, peformance para leitura e escrita, controle de schema padronização dos dados e evolução de forma controlada.
 
+Como Executar o projeto:
+-
+Na função main.py existem parametros de entrada para execução do pipeline;
+- Parâmetros:
+  - ENV: ambiente
+  - mode_load: tipo de carga
+  - year_months: lista de períodos
+
+- **ENV**:
+  Define o ambiente de execução
+  - local -> execução local
+  - databricks -> execução no Databricks
+
+- **mode_load**: Define o tipo de carga dos dados
+  - full -> reprocessamento completo consumindo todos parquet do UnitCatalog (recria a tabela)
+  - incremental -> processamento ou reprocessamento por ano mês que for necessário
+
+- **list_year_months** (opcional) Lista de períodos para processamento YYYY-MM
+  - list_year_month = ["2023-01","2023-02","2023-03","2023-04","2023-05"]
+  - list_year_month = None
+
+ - Exemplo de Execução:
+    - run_bronze(spark, ENV, mode_load, list_year_month)
+
+
 1 - Volume (raw files)
 -
   Ingestão dos dados brutos (parquet) - **Utilizando Unity Catalog - Via Upload File**
@@ -47,7 +72,7 @@ Consumo e performance dos dados. Tendo como motivos, ACID para consistência dos
 -
   Camada para Manter dados próximos da origem, garantindo consistência estrutural.
 
-  Ingestão dos dados brutos (parquet) - **Utilizando Unity Catalog - Via Upload File**
+  Consumo dos dados brutos (parquet) - **Utilizando Unity Catalog - Via Upload File**
 
   Padronização mínima e estrutural e particionamento e governança /
   year, month, dat_import

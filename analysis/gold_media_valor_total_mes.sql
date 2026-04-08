@@ -19,12 +19,12 @@ ORDER BY month;
 
     --spark.sql("""
        -- CREATE OR REPLACE VIEW """ + schema + """.gold_media_valor_total_mes AS
-    SELECT 
-        month AS des_mes,
-        AVG(total_amount) AS val_media_total_mes
-    FROM """ + schema + """.silver_taxi
-    GROUP BY month
-    ORDER BY des_mes ASC
+    -- SELECT 
+    --     month AS des_mes,
+    --     AVG(total_amount) AS val_media_total_mes
+    -- FROM """ + schema + """.silver_taxi
+    -- GROUP BY month
+    -- ORDER BY des_mes ASC
    -- """)
 
 

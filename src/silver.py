@@ -1,4 +1,4 @@
-from pyspark.sql.functions import col, hour, month
+from pyspark.sql.functions import col, hour, month as spark_month
 from pyspark.sql import SparkSession, DataFrame
 import logging
 
@@ -19,7 +19,8 @@ def run_silver(spark: SparkSession, ENV: str) -> DataFrame:
         "tpep_pickup_datetime",
         "tpep_dropoff_datetime",
         "year",
-        "month"
+        "month",
+        "dat_import"
     ]
 
     try:
@@ -38,7 +39,8 @@ def run_silver(spark: SparkSession, ENV: str) -> DataFrame:
         .withColumn("tpep_pickup_datetime", col("tpep_pickup_datetime").cast("timestamp")) \
         .withColumn("tpep_dropoff_datetime", col("tpep_dropoff_datetime").cast("timestamp")) \
         .withColumn("year", col("year").cast("int")) \
-        .withColumn("month", col("month").cast("int")) 
+        .withColumn("month", col("month").cast("int")) \
+        .withColumn("dat_import", col("dat_import").cast("timestamp"))
 
 
     logger.info("DataQuality - Validacao de negócio camada Silver")
